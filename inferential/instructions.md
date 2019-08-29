@@ -9,6 +9,7 @@ Includes parametric tests and tests of their assumptions. Code for non-parametri
 - correlation (Pearson and Spearman)
 - t-tests
 - post-hoc tests plus corrections for multiple comparisons
+  
   adding in future update
   - linear regression
   
@@ -16,6 +17,7 @@ Includes parametric tests and tests of their assumptions. Code for non-parametri
 - Mann-Whitney U
 - Wilcoxon SR
 - Kruskal-Wallis
+    
     adding in future update:
     - Friedman test
     
