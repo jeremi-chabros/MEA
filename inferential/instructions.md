@@ -1,4 +1,4 @@
-Folder for basic inferential statistics comparing network features over time points and between groups.
+This folder is for basic inferential statistics comparing network features over time points and between groups.
 
 **MAIN R ANALYSIS (gt_mecp2.R):**
 Includes parametric tests and tests of their assumptions. Code for non-parametric tests are included for if assumptions are not met.
