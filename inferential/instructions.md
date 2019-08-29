@@ -15,7 +15,7 @@ Includes parametric tests and tests of their assumptions. Code for non-parametri
     - linear regression
   
   
-## non-parametric
+## non-parametric:
 - Mann-Whitney U
 - Wilcoxon SR
 - Kruskal-Wallis
