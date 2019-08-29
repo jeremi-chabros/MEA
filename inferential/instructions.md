@@ -3,7 +3,7 @@ This folder is for basic inferential statistics comparing network features over 
 **MAIN R ANALYSIS (gt_mecp2.R):**
 Includes parametric tests and tests of their assumptions. Code for non-parametric tests are included for if assumptions are not met.
 
-  **parametric:
+  **parametric:**
 - mixed ANOVA
 - rm ANOVA
 - between groups ANOVA
@@ -11,16 +11,16 @@ Includes parametric tests and tests of their assumptions. Code for non-parametri
 - t-tests
 - post-hoc tests plus corrections for multiple comparisons
   
-    *adding in future update:
+    *adding in future update:*
     - linear regression
   
   
-  **non-parametric
+  **non-parametric**
 - Mann-Whitney U
 - Wilcoxon SR
 - Kruskal-Wallis
     
-    *adding in future update:
+    *adding in future update:*
     - Friedman test
     
 MACHINE LEARNING:
