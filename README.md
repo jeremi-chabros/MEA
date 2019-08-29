@@ -3,7 +3,10 @@ For help, questions, corrections or feedback please contact: *awed2@cam.ac.uk*
 # Analysing the effects of genotype on cortical network development using graph theory
 This account is based on work that I completed during my Masters in the Neuronal Oscillations groups (Dept. of PDN, University of Cambridge) under the supervision of Dr Susanna Mierau and Prof Ole Paulsen.
 
+
+
 *The final thesis will be uploaded on 18th September.*
+
 
 
 ## Scripts found in this repository were ultimately used for: 
@@ -14,6 +17,9 @@ This account is based on work that I completed during my Masters in the Neuronal
 These scripts take .mat files containing multielectrode array extracellular recordings an create spike matrices for each recording. That is, a sparse matrix is created where there is a binary vector for each channel indicating spike times (referred to as *spike trains*). Various analyses can be performed on spiking activity and one can also plot spikes and voltage traces in various ways. Bursting activity can then be detected using these spike matrices. This produces a cell variable which tells the user the burst start and end times as well as the electrodes containing spikes that contributed to the burst. Currently, functional connectivity is calculated by correlating spiking activity.
 
 Currently, functional connectivity is calculated across entire spike trains rather than within bursts. This will be added in a future update.
+
+
+![james bons](https://user-images.githubusercontent.com/43884992/63936259-4c257700-ca57-11e9-80a1-b82b2735a69b.png)
 
 ## Steps
 
