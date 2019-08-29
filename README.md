@@ -25,7 +25,7 @@ Currently, functional connectivity is calculated across entire spike trains rath
 
 1. Record MEA activitiy using MC Rack software to produce .mcd files. Convert these to .raw files using the MC Data tool (available online). Then use MEAbatchConvert.m to convert the .raw files to .mat files. See the "mecp2" repository to get detailed instructions. The .mat files will contain a variable called "dat" — this contains a matrix with a row for each electrode and a column for each sample. Thus, if there are 60 electrodes in the array, there will be 60 row vectors containing voltage traces. There is also a vatiable called "channels" that tells the user which electrode each row corresponds to in terms of the electrode ID (e.g. electrode 78 is column eight, row 7 in the MEA). For example, if row 10 of *channels* is "78" then row 10 of *dat* is the voltage trace for the electrode in column 8, row 7 of the MEA.
 
-![image showing examples spike traces with two methods](images/spikes overlaid3.png)
+![image showing examples spike traces with two methods](images/spikes%20overlaid3.png)
 
 2. Detect spikes using the .mat files. This creates spike matrices
 
