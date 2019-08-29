@@ -18,7 +18,7 @@ These scripts take .mat files containing multielectrode array extracellular reco
 
 Currently, functional connectivity is calculated across entire spike trains rather than within bursts. This will be added in a future update.
 
-![image showing flow of analyses](analysis_flow_summary.png)
+![image showing flow of analyses](images/analysis_flow_summary.png)
 
 ## Steps
 
