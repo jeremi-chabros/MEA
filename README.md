@@ -47,6 +47,7 @@ There are multiple options for correlation including cross-correlations, cross-c
 *Figure 4: Example of an MEA network graph over development. Scale bar represents spike time tiling coefficient. Orange circles represent nodes, with the size of the circle proportional to node degree. Nodes that were part of the rich club are circled in black.*
 
 **Steps 3–5 are done using network_features_MEA.m**
+
 Currently, the script works on spike matrices with 60 channels. To exclude electrodes, set the spike train of that electrode to that of the reference electrode.
 
 The network feature vector for each recording can be manually copied into excel. Desired feature can then be saved as a csv file and analysed with the R analysis script.
