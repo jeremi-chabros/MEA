@@ -33,9 +33,15 @@ Currently, functional connectivity is calculated across entire spike trains rath
 
 3. Carry out spiking and bursting analyses on spike matrices
 
-4. Create weighted adjacency matrices by correlating spike trains within spike matrices of each recording
+4. Create weighted adjacency matrices by correlating spike trains within spike matrices of each recording. There are multiple options for correlation including cross-correlations, cross-covariance and spike time tiling coefficient. Refer to Cutts and Eglen (2014) for a comparison of methods and Schroeter et al. (2015) for an example of the use of cross-covariance in MEAs.
+
+![image showing weighted and binary spike matrices](images/sttc.png)
+*Figure 3: Conversion of weighted connections to a binary matrix. A: adjacency matrix showing the connection (edge weight) between electrode pairs. Scalebar in terms of spike time tiling coefficient. B: white squares indicate where supra-threshold connections (STTC>0.5) converted to binary edges.*
 
 5. Carry out functional connectivity and graph analyses.
+
+![image showing network graph over development](images/190515-4b-div21-35-richClub.png)
+*Figure 4: Example of an MEA network graph over development. Scale bar represents spike time tiling coefficient. Orange circles represent nodes, with the size of the circle proportional to node degree. Nodes that were part of the rich club are circled in black.*
 
 **Steps 3–5 are done using network_features_MEA.m**
 Currently, the script works on spike matrices with 60 channels. To exclude electrodes, set the spike train of that electrode to that of the reference electrode.
