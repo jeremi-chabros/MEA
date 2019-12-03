@@ -5,7 +5,7 @@ This account is based on work that I completed during my Masters in the Neuronal
 
 
 
-Thesis available for download (https://drive.google.com/open?id=17y718mBRKhD5DLs6sTSDKnlBg-i8K1Gt)
+**Thesis available for download** [click here](https://drive.google.com/open?id=17y718mBRKhD5DLs6sTSDKnlBg-i8K1Gt)
 
 
 
