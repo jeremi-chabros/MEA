@@ -7,7 +7,7 @@ This account is based on work that I completed during my Masters in the Neuronal
 
 **Thesis available for download** [click here](https://drive.google.com/open?id=17y718mBRKhD5DLs6sTSDKnlBg-i8K1Gt)
 
-
+**Poster presented at Cambridge Neuroscience conference (#ABC2019), September 2019** [click here](https://drive.google.com/file/d/1S1rNTnI17tioU4a_Gbh8fdOPPjm9pTQS/view?usp=sharing)
 
 ## Scripts found in this repository were ultimately used for: 
 (1) applying graph theory to cortical neurons cultured on microelectrode arrays; (2) comparing wild-type and Mecp2-deficient networks.
