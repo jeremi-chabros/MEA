@@ -1,0 +1,1 @@
+change all directories in the batchGetSpikes and detectSpikes scripts
