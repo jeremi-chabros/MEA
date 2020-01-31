@@ -1,7 +1,7 @@
 For help, questions, corrections or feedback please contact: *awed2@cam.ac.uk*
 
 # Analysing the effects of genotype on cortical network development using graph theory
-This account is based on work that I completed during my Masters in the Neuronal Oscillations groups (Dept. of PDN, University of Cambridge) under the supervision of Dr Susanna Mierau and Prof Ole Paulsen.
+This account is based on work that I started during my Masters in the Neuronal Oscillations groups (Dept. of PDN, University of Cambridge) under the supervision of Dr Susanna Mierau and Prof Ole Paulsen.
 
 
 
