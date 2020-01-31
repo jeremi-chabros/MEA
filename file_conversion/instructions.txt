@@ -1,1 +1,2 @@
-change all directories in the batchGetSpikes and detectSpikes scripts
+change all directories in the MEAbatchConvert_alex.m script (ctrl + F for exact match to the change directory command, 'cd')
+run MEAbatchConvert_alex.m
