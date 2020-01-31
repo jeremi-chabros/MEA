@@ -32,6 +32,8 @@
 % figure2eps
 %addpath(genpath('/media/timothysit/Seagate Expansion Drive1/The_Organoid_Project/figure2epsV1-3'));
 
+addpath(genpath('D:\MECP2_2019_AD\Scripts_and_Output\S2.0.Tim'));
+
 %% Convert Data from .raw to .mat 
 
 % I assume this is done for now 
@@ -111,10 +113,10 @@ bcsIDs=channels(bcs)';
 %% MEA Raster Plot 
 
 figure
-recordDuration = length(spikeMatrix) / fs;
-downSpikeMatrix = downSampleSum(spikeMatrix, recordDuration * 1/5); 
-
-h = imagesc(downSpikeMatrix' ./5);  %note if one channel has way more spikes then this will dominate scale bar
+recordDuration = length(spikeMatrix); %in samples
+downSpikeMatrix = downSampleSum_org(spikeMatrix, recordDuration * 1/fs); 
+%downSpikeMatrix = downSampleMean(spikeMatrix, recordDuration * 1/fs);
+h = imagesc(downSpikeMatrix(:,:)' ./fs);  %note if one channel has way more spikes then this will dominate scale bar
 %change scalebar to log spikes
 %h = imagesc(log(downSpikeMatrix') ./5); 
 %logFR_matrix = log(downSpikeMatrix);
@@ -149,16 +151,33 @@ set(gcf, 'Position', [100 100 xLength yLength])
 
 
 %% Multiple single trace plots 
+fileName = 'SMPT190923_2B_DIV21.mat';
+load(fileName);
+%electrodesToPlot = [find(channels==82),find(channels==83),find(channels==84),...
+%    find(channels==85),find(channels==86),find(channels==87)]; % list of electrodes to plot
+electrodesToPlot = [find(channels==15),find(channels==72),find(channels==73),find(channels==74),...
+    find(channels==75),find(channels==76),find(channels==77)]; % list of electrodes to plot
+electrodesToPlot = [find(channels==15),find(channels==46)];
 
+                fs=25000;
+                lowpass = 600; 
+                highpass = 8000; 
+                wn = [lowpass highpass] / (fs / 2); 
+                filterOrder = 3; %changed from 3 to 5 by AD; and back
+                [b, a] = butter(filterOrder, wn); 
+                filteredMatrix = filtfilt(b, a, double(dat));
+                
+%timeRange = 1: fs * 0.01;
+timeRange = 1:length(dat)/720;
+%timeRange = 1298750:1299250;
 yGap = 100; % vertical gap bewteen traces 
-electrodesToPlot = [3, 16, 53]; % list of electrodes to plot
-timeRange = 1: fs * 0.01;
 
 figure 
-
 for electrode = 1:length(electrodesToPlot)
             try 
-            plot(filteredMatrix(timeRange, electrodesToPlot(electrode)) - yGap * (electrode -1))
+            plot(filteredMatrix(timeRange, electrodesToPlot(electrode)) - yGap * (electrode -1),...
+                'Color',[0,0,0])
+%            plot(filteredMatrix(timeRange, electrodesToPlot(electrode)) - yGap * (electrode -1))
             hold on 
             catch
             plot(filteredData(timeRange, electrodesToPlot(electrode)) - yGap * (electrode -1))
@@ -168,12 +187,27 @@ end
 
 aesthetics 
 removeAxis 
+sb=scalebar;
+sb.Position=[1,min(filteredMatrix(timeRange))-(yGap*length(electrodesToPlot))];
+sb_hoz = [int2str(sb.XLen/fs*1000),' ms']; %in ms
+sb_ver = [int2str(sb.YLen),' uV']; %in uV
+sb.hTextX_Pos= [-100,-100]; %-100 n both to make it disappear off screen
+sb.hTextY_Pos= [-100,-100];
+if strfind(fileName,'_') %remove underscores for title
+    fileName(strfind(fileName,'_'))='';
+else
+end
+%title({[int2str(round(length(timeRange)/fs*1000)),'{ ms of recording from }',fileName],...
+%    ['{ (scalebars: horizontal }',sb_hoz,'{ vertical }',sb_ver,')']});
+title({[int2str(round(length(timeRange)/fs)),'{ s of recording from }',fileName],...
+    ['{ (scalebars: horizontal }',sb_hoz,'{ vertical }',sb_ver,')']});
+%top title is ms bottom is in s
 
 %% raw data Multiple single trace plots with channels and time window and file in title - AD
 
 yGap = 100; % vertical gap bewteen traces 
 electrodesToPlot = [15, 4]; % list of electrodes to plot
-time_s = 0.1 %time length to plot is s
+time_s = 50.00 %time length to plot is s
 timeRange = 1: fs * time_s; %last number here = time wish to plot in seconds
 %timeRange = 1:length(dat); %last number here = time wish to plot in seconds
 
@@ -185,12 +219,12 @@ for electrode = 1:length(electrodesToPlot)
     %x_time_ms=[1:length(timeRange)]/(fs/1000);
     x_time_s=[1:length(timeRange)]/(fs);
     y= data(timeRange, electrodesToPlot(electrode)) - yGap * (electrode -1);
-            plot(x_time_s,y,'Color','b')
+            plot(x_time_s,y,'Color','k')
             hold on 
 
 end
 
-filename=files(2).name;
+
 
 aesthetics
 if length(timeRange)<25000
@@ -204,10 +238,6 @@ end
 electrodeIDs = channels(electrodesToPlot)';  %may need to load channels variable
 %load(strcat(files(30).name(1:end-4)),'channels'); %change file accordingly
 
-title([plotTime,tUnit,'{of raw signal from }',filename(1:9),'-',filename(11:12),'-',filename(14:18),...
-    newline,'{Electrodes IDs (top to bottom): }',int2str(electrodeIDs)]);
-%use curly brackets for a string (necessary to impose finger space)
-%add scalebar?? (cant change y lim due to imposed y gap)
 aesthetics 
 removeAxis 
        sb = scalebar;
@@ -220,14 +250,21 @@ removeAxis
        %may need to adjust accoridng to legnth of plot window
        %sb.hTextX_Pos = [length(trace)/10,-sb.YLen/5];
        %sb.hTextY_Pos = [-length(trace)/6,sb.YLen/10];
-       
-       
+ filename=files(2).name;      
+    title([plotTime,tUnit,'{of raw signal from }',filename(1:9),'-',filename(11:12),'-',filename(14:18),...
+    newline,'{Electrodes IDs (top to bottom): }',int2str(electrodeIDs)]);
+%use curly brackets for a string (necessary to impose finger space)
+%add scalebar?? (cant change y lim due to imposed y gap)
+   
 %% add a point to indicate the spike time
-stimes = find(s(timeRange,4)==1); %search for nearest spike within plot window
+%load spikes
+load('SMPT190923_2B_DIV21_cSpikes_L0.1254.mat');
+s=full(cSpikes);
+stimes = find(s(timeRange,electrodesToPlot(2))==1); %search for nearest spike within plot window
 % add one, may need to do manually
 x_secs = stimes/fs;
-y_spikes = ones(size(x))*min(y)-yGap/8;
-plot(x_secs,y_spikes,'^','LineWidth',5,'MarkerFaceColor','r','MarkerEdgeColor','r');
+y_spikes = ones(size(x_secs))*min(y)-yGap/8;
+plot(x_secs,y_spikes,'^','LineWidth',2,'MarkerFaceColor','r','MarkerEdgeColor','r');
 
 
  
@@ -279,9 +316,11 @@ removeAxis
 %spike_dir = 'D:\MECP2_2019_AD\Data_To_Use\2.4.2.TopCultures\mSpikes7.5'
 %files=dir('*mSpikes*');
 %spike_dir = 'D:\MECP2_2019_AD\Data_To_Use\2.4.2.TopCultures\cSpikes.2507'
-spike_dir = 'D:\MECP2_2019_AD\Data_To_Use\2.4.2.TopCultures\cSpikes.0';
+%spike_dir = 'D:\MECP2_2019_AD\Data_To_Use\2.4.2.TopCultures\cSpikes.0';
+spike_dir = 'D:\MECP2_2019_AD\Scripts_and_Output\S1.2.File_Conversion_Output';
+
 cd(spike_dir);
-files=dir('*cSpikes*');
+files=dir('*190705*cSpikes_L-*');
 
 for file=1:length(files)
 filename=files(file).name;
@@ -290,8 +329,8 @@ load(filename);
 spikeMatrix=full(cSpikes);
 
     %load channel variable
-cd 'D:\MECP2_2019_AD\Data_To_Use\2.4.2.TopCultures\mats';
-load(strcat(filename(1:18),'.mat'),'channels')
+%cd(spike_dir);
+%load(strcat(filename(1:end-14),'.mat'),'channels')
 
 %adjust spike matrix from being in channel order (see channels file '1 2 3 4 etc')
 %into  order of channel IDs counting along rows (by column) i.e. '21 31 41
@@ -334,9 +373,10 @@ adj_spikeMatrix=spikeMatrix(:,pltOrder);
 %end
 
 figure
-makeHeatMap(adj_spikeMatrix, 'rate') %choose 'rate' or 'count'
+makeHeatMap(adj_spikeMatrix, 'logc') %choose 'rate' or 'count' or 'logc'
 set(gcf, 'Position', [100, 100, 800, 800 * 1])
 title([filename(1:9),'-',filename(11:12),'-',filename(14:18)]);
+title([filename]);
 %need to set scalebar limit to 5Hz - make universal
 %caxis([0,5])%comment out when checking cultures; turn on for thesis figure
 

@@ -169,7 +169,7 @@ if strcmp(method, 'Bakkum')
     % 
     % 'N' spikes within 'ISI_N' [seconds] satisfies the burst criteria
     
-    N = 30; % N is the critical paramter here, 
+    N = 10; % N is the critical paramter here, 
     % ISI_N can be automatically selected (and this is dependent on N)
     Steps = 10.^[-5:0.05:1.5]; 
     % exact values of this doens't matter as long as its log scale, covers 
@@ -206,7 +206,7 @@ if strcmp(method, 'Bakkum')
      
     % burstMatrix = burstCell; 
     
-    minChannel = 3; 
+    minChannel = 1; 
     % minimum number of channel to be active for a burst to be considered network burst
     % this can be incorporated to the above can can be vectorised
     % active means at least one spike within the time window
