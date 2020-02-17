@@ -1,4 +1,4 @@
-function [spikeTrain, finalData, threshold] = detectSpikes(data, method, multiplier, L)
+function [spikeTrain, finalData, threshold] = detectSpikes(data, method, multiplier, L,refPeriod_ms)
 
 % input 
     % data: a n x 1 vector containing the signal, where n is the number of
@@ -41,7 +41,7 @@ fs = 25000; % sampling rate
 if strcmp(method,'Prez') 
     par.detect_order = 4; % default, no idea why specifically this number
     par.ref_ms = 1.5; % refractor period in ms, not sure when this is going to be used...
-    refPeriod = par.ref_ms * 10^(-3) * fs; % covert to frames
+    refPeriod = refPeriod_ms * 10^(-3) * fs; % covert to frames
     fmin_detect = 300; 
     fmax_detect = 8000;
     [b,a] = ellip(par.detect_order,0.1,40,[fmin_detect fmax_detect]*2/fs);
@@ -130,7 +130,7 @@ if strcmp(method,'Tim')
     spikeTrain = double(spikeTrain)';
     
     % refractory period 
-    refPeriod = 2.0 * 10^-3 * fs; % 2ms 
+    refPeriod = refPeriod_ms * 10^-3 * fs; % 2ms 
     for i = 1:length(spikeTrain);
        if spikeTrain(i) == 1; 
            refStart = i + 1; % start of refractory period 
@@ -184,7 +184,7 @@ if strcmp(method,'Manuel')
  
 
     % impose refractory period
-    refPeriod = 2.0 * 10^-3 * fs; % 2ms 
+    refPeriod = refPeriod_ms * 10^-3 * fs; % 2ms 
     % I think there is a more efficient/elegant way to do this, but I haven't 
     % taken time to think about it yet 
     spikeTrain = double(spikeTrain);
@@ -261,7 +261,7 @@ if strcmp(method,'cwt')
     spikeTrain(spikeFrames) = 1;
     
      % impose refractory period
-     refPeriod = 2.0 * 10^-3 * fs; % 2ms 
+     refPeriod = refPeriod_ms * 10^-3 * fs; % 2ms 
     % I think there is a more efficient/elegant way to do this, but I haven't 
     % taken time to think about it yet 
     % refractory period
@@ -304,7 +304,7 @@ if strcmp(method,'abs')
     
 
     % impose refractory period
-    refPeriod = 2.0 * 10^-3 * fs; % 2ms 
+    refPeriod = refPeriod_ms * 10^-3 * fs; % 2ms 
     % I think there is a more efficient/elegant way to do this, but I haven't 
     % taken time to think about it yet 
     spikeTrain = double(spikeTrain);
