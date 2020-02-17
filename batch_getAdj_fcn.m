@@ -1,4 +1,4 @@
-function batch_getAdj_fcn(method,files)
+function batch_getAdj_fcn(method,files,sync_win,num_samples,ds_rate)
 % batch get adjM
 % clear all
 % cd 'D:\MECP2_2019_AD\Scripts_and_Output\S1.2.File_Conversion_Output'
@@ -8,7 +8,7 @@ function batch_getAdj_fcn(method,files)
 sampling_fr = 25000;
 progressbar
 for file = 1:length(files)
-    if ~~exist(strcat(files(file).name(1:end-4), '_adjM', '.mat'))
+    if ~~exist(strcat(files(file).name(1:end-4), '_adjM_',num2str(sync_win/ds_rate), '.mat'))
     fprintf(strcat('\n',files(file).name(1:end-4),' \n already done','\n'))
     else
     fprintf(strcat('\n',files(file).name(1:end-4),' \n calculating adj. mat. ...','\n'))
@@ -41,11 +41,16 @@ for file = 1:length(files)
 
     % get adjM
     % method = 'tileCoef';
-    adjM = getAdjM(spikeMat, method, 0,0.05); %0 means no downsampling; 0.05 is sync window in s
+    if ~exist('sync_win')
+        disp('need to determine sync_win!!'); %i.e. 50 ms synchroncity window is the default
+    else
+    end
+    adjM = getAdjM(spikeMat, method, num_samples,sync_win); %0 means no downsampling; 0.05 is sync window in s
         % save 
-        fileName = strcat(files(file).name(1:end-4), '_adjM', '.mat'); 
+        fileName = strcat(files(file).name(1:end-4), '_adjM_',num2str(sync_win/ds_rate), '.mat'); 
         % save(fileName, 'mSpikes', 'tSpikes', 'pSpikes');
-        save(fileName, 'adjM','channels');
+        sync_win_adjusted = sync_win/ds_rate;
+        save(fileName, 'adjM','channels','sync_win_adjusted');
         toc
         clear cSpikes mSpikes channels
         progressbar(file/length(files));

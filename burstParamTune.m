@@ -6,11 +6,11 @@
 % 1209 6A DIV 22
 
 %load('/media/timothysit/Seagate Expansion Drive/The_Mecp2_Project/feature_extraction/matlab/data/goodSpikes/KO_12_09_17-6A_DIV22_info.mat')
-cd 'D:\MECP2_2019_AD\Data_To_Use\2.4.2.TopCultures\cSpikes.2507'
-files=dir('*.mat');
-filename = files(86).name;
+cd 'D:\MECP2_2019_AD\Scripts_and_Output\S1.2.File_Conversion_Output'
+files=dir('*FTD*mSpikes_3.mat');
+filename = files(36).name;
 load(filename)
-spikeMatrix = cSpikes;
+spikeMatrix = mSpikes;
 
 %% set some paramters 
 samplingRate = 25000; 
@@ -18,14 +18,16 @@ samplingRate = 25000;
 
 
 %% Look at number of detected bursts vs numChannel 
-
-numChannel = 1:10; 
-N = 10; 
+clearvars -except spikeMatrix samplingRate filename
+numChannel = [20 50]; 
+N = 100; 
 
 numBurst = zeros(size(numChannel));
+count = 1;
 for nC = numChannel
     burstMatrix = bakkumBurstDetect(spikeMatrix, samplingRate, N, nC);
-    numBurst(nC) = length(burstMatrix);
+    numBurst(count) = length(burstMatrix);
+    count = count+1;
 end 
 
 figure
@@ -38,9 +40,9 @@ aesthetics
 
 %% Look at number of detected bursts vs numSpike 
 
-numSpike = 10:30; 
+numSpike = [100 150]; 
 numBurst = zeros(size(numSpike));
-nC = 1;
+nC = 50;
 for nS = 1:length(numSpike)
     burstMatrix = bakkumBurstDetect(spikeMatrix, samplingRate, numSpike(nS), nC);
     numBurst(nS) = length(burstMatrix);

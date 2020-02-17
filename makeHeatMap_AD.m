@@ -1,4 +1,4 @@
-function makeHeatMap(spikeMatrix, option) 
+function makeHeatMap(spikeMatrix, option,channels) 
 
     % outputs a heatmap figure handle for your spikes 
     % Assume numSamp x 60 matrix 
@@ -27,6 +27,26 @@ function makeHeatMap(spikeMatrix, option)
     
     
     spikeCount = sum(spikeMatrix); 
+    
+        pltOrder=[find(channels==21),find(channels==31),find(channels==41),... %count across columns (subplot index plots across columns, e.g. sublot (4,4,2) the plots in column 2 not row 2
+        find(channels==51),find(channels==61),find(channels==71),find(channels==12),...
+        find(channels==22),find(channels==32),find(channels==42),find(channels==52),...
+        find(channels==62),find(channels==72),find(channels==82),find(channels==13),...
+        find(channels==23),find(channels==33),find(channels==43),find(channels==53),...
+        find(channels==63),find(channels==73),find(channels==83),find(channels==14),...
+        find(channels==24),find(channels==34),find(channels==44),find(channels==54),...
+        find(channels==64),find(channels==74),find(channels==84),find(channels==15),...
+        find(channels==25),find(channels==35),find(channels==45),find(channels==55),...
+        find(channels==65),find(channels==75),find(channels==85),find(channels==16),...
+        find(channels==26),find(channels==36),find(channels==46),find(channels==56),...
+        find(channels==66),find(channels==76),find(channels==86),find(channels==17),...
+        find(channels==27),find(channels==37),find(channels==47),find(channels==57),...
+        find(channels==67),find(channels==77),find(channels==87),find(channels==28),...
+        find(channels==38),find(channels==48),find(channels==58),find(channels==68),...
+        find(channels==78)];
+    
+    spikeCount = spikeCount(pltOrder);
+
     
     if strcmp(option,'rate')
         spikeCount = spikeCount / (size(spikeMatrix, 1) / 25000);
@@ -91,10 +111,17 @@ function makeHeatMap(spikeMatrix, option)
     cb = colorbar;
     if strcmp(option, 'count') 
         ylabel(cb, 'Spike count')
+        %for Andras organoids:
+        %caxis([5000 10000])
     elseif strcmp(option, 'rate') 
         ylabel(cb, 'Spike rate (Hz)')
-    elseif strcmp(option, 'logc') 
-        ylabel(cb, 'Log10 spike count')     
+    elseif strcmp(option, 'logc')
+        %ylabel(cb, 'Log10 spike count')   
+        ylabel(cb, 'Spike count')
+        ylimit_cbar = 4;
+        caxis([0,ylimit_cbar]) %set colorbar axis limits; also adjusts colour
+        cb.Ticks = linspace(0,ylimit_cbar,ylimit_cbar+1);%(start,end,number of numbers)
+        cb.TickLabels = 10.^(linspace(0,ylimit_cbar,ylimit_cbar+1));         
     end 
     cb.TickDirection = 'out';
     cb.Location = 'Southoutside';
