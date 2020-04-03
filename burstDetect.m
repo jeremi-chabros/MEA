@@ -1,4 +1,4 @@
-function [burstMatrix, burstTimes, burstChannels] = burstDetect(spikeMatrix, method, samplingRate)
+function [burstMatrix, burstTimes, burstChannels] = burstDetect(spikeMatrix, method, samplingRate,N,minChannel)
 %script from: https://github.com/Timothysit/mecp2
     %last edited by Alex Dunn: August 2019
     
@@ -12,6 +12,11 @@ function [burstMatrix, burstTimes, burstChannels] = burstDetect(spikeMatrix, met
     
     % samplingRate 
     % sampling frequency, defaults to 25kHz (mecp2 project 2017-2018) 
+    
+    % N is the minimum  number of spike for detecting a burst
+    
+    % minChannel is the minimum number of channels required to participate
+    % in a burst
 
 % OUTPUT 
     % burstMatrix
@@ -28,8 +33,8 @@ function [burstMatrix, burstTimes, burstChannels] = burstDetect(spikeMatrix, met
     % active during that burst
     
     
-% Author: Tim Sit 
-% Last update: 20180224
+% Original author: Tim Sit 
+% Last update: 2020.04.03 bu Alex Dunn
 
 switch nargin
     case 1 
@@ -45,7 +50,7 @@ if strcmp(method, 'Manuel')
     % activity of all electrodes averaged over windows of 10ms
     % into one vector 
     
-    duration = 720; 
+    duration = 360; 
     downMatrix = downsample(spikeMatrix, 25);
     
     % 10 ms at 1000Hz means 10 samples 
@@ -169,7 +174,8 @@ if strcmp(method, 'Bakkum')
     % 
     % 'N' spikes within 'ISI_N' [seconds] satisfies the burst criteria
     
-    N = 10; % N is the critical paramter here, 
+    % N = 30; % N is the critical paramter here, 
+    
     % ISI_N can be automatically selected (and this is dependent on N)
     Steps = 10.^[-5:0.05:1.5]; 
     % exact values of this doens't matter as long as its log scale, covers 
@@ -206,7 +212,8 @@ if strcmp(method, 'Bakkum')
      
     % burstMatrix = burstCell; 
     
-    minChannel = 1; 
+%     minChannel = 3; 
+
     % minimum number of channel to be active for a burst to be considered network burst
     % this can be incorporated to the above can can be vectorised
     % active means at least one spike within the time window
