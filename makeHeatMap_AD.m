@@ -118,7 +118,7 @@ function makeHeatMap(spikeMatrix, option,channels)
     elseif strcmp(option, 'logc')
         %ylabel(cb, 'Log10 spike count')   
         ylabel(cb, 'Spike count')
-        ylimit_cbar = 4;
+        ylimit_cbar = 5;
         caxis([0,ylimit_cbar]) %set colorbar axis limits; also adjusts colour
         cb.Ticks = linspace(0,ylimit_cbar,ylimit_cbar+1);%(start,end,number of numbers)
         cb.TickLabels = 10.^(linspace(0,ylimit_cbar,ylimit_cbar+1));         

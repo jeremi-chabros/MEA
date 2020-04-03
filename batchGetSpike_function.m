@@ -1,4 +1,4 @@
-function batchGetSpike_function(datadir,files,method,multiplier,L,refPeriod_ms)
+function batchGetSpike_function(datadir,files,method,multiplier,L,refPeriod_ms,my_email)
 % read all .mat files in directory, look for spikeMatrix or dat
 % then extract spikes, save as SPARSE MATRIX
 
@@ -53,33 +53,40 @@ for file = 1:length(files)
     % greater), do log(1000)/36.7368 to derive L
     
     %% get spikes and save
-    if strcmp(method,'cwt')
-        [spikeMatrix,~,thresholds] = getSpikeMatrixAlex(data, 'cwt', multiplier, L,refPeriod_ms); %AD added, need to adjust loss parameter
-        cSpikes = sparse(spikeMatrix);
-        %toc
-        fileName = strcat(files(file).name(1:end-4), '_cSpikes_L',num2str(L), '.mat');
-        % save(fileName, 'mSpikes', 'tSpikes', 'pSpikes');
-        save(fileName, 'cSpikes','channels','thresholds');
-        progressbar(file/length(files),[],[]);
-        
-    elseif strcmp(method,'Manuel')
-        [spikeMatrix,~,thresholds] = getSpikeMatrixAlex(data, 'Manuel', multiplier, L,refPeriod_ms); %AD added, need to adjust loss parameter
-        mSpikes = sparse(spikeMatrix);
-        %toc
-        fileName = strcat(files(file).name(1:end-4), '_mSpikes_',num2str(multiplier), '.mat');
-        % save(fileName, 'mSpikes', 'tSpikes', 'pSpikes');
-        save(fileName, 'mSpikes','channels','thresholds');
-        progressbar(file/length(files),[],[]);
-        
-    elseif strcmp(method,'abs')
-        [spikeMatrix,~,thresholds] = getSpikeMatrixAlex(data, 'abs', multiplier, L,refPeriod_ms);
-        aSpikes = sparse(spikeMatrix);
-        %toc
-        fileName = strcat(files(file).name(1:end-4), '_aSpikes_',num2str(multiplier), '.mat');
-        save(fileName, 'aSpikes','channels','thresholds');
-        progressbar(file/length(files),[],[]);
-    else
-        disp('method inputted incorrectly')
+    try
+        if strcmp(method,'cwt')
+            [spikeMatrix,~,thresholds] = getSpikeMatrixAlex(data, 'cwt', multiplier, L,refPeriod_ms); %AD added, need to adjust loss parameter
+            spikeMatrix(:,find(channels == 15)) = zeros(size(spikeMatrix(:,find(channels == 15)))); %remove spikes from ref channel
+            cSpikes = sparse(spikeMatrix);
+            %toc
+            fileName = strcat(files(file).name(1:end-4), '_cSpikes_L',num2str(L), '.mat');
+            % save(fileName, 'mSpikes', 'tSpikes', 'pSpikes');
+            save(fileName, 'cSpikes','channels','thresholds');
+            progressbar(file/length(files),[],[]);
+            
+        elseif strcmp(method,'Manuel')
+            [spikeMatrix,~,thresholds] = getSpikeMatrixAlex(data, 'Manuel', multiplier, L,refPeriod_ms); %AD added, need to adjust loss parameter
+            spikeMatrix(:,find(channels == 15)) = zeros(size(spikeMatrix(:,find(channels == 15)))); %remove spikes from ref channel
+            mSpikes = sparse(spikeMatrix);
+            %toc
+            fileName = strcat(files(file).name(1:end-4), '_mSpikes_',num2str(multiplier), '.mat');
+            % save(fileName, 'mSpikes', 'tSpikes', 'pSpikes');
+            save(fileName, 'mSpikes','channels','thresholds');
+            progressbar(file/length(files),[],[]);
+            
+        elseif strcmp(method,'abs')
+            [spikeMatrix,~,thresholds] = getSpikeMatrixAlex(data, 'abs', multiplier, L,refPeriod_ms);
+            spikeMatrix(:,find(channels == 15)) = zeros(size(spikeMatrix(:,find(channels == 15)))); %remove spikes from ref channel
+            aSpikes = sparse(spikeMatrix);
+            %toc
+            fileName = strcat(files(file).name(1:end-4), '_aSpikes_',num2str(multiplier), '.mat');
+            save(fileName, 'aSpikes','channels','thresholds');
+            progressbar(file/length(files),[],[]);
+        else
+            disp('method inputted incorrectly')
+        end
+    catch
+        error_email_fcn(my_email,files(file).name);
     end
     %D:\MECP2_2019_AD\Scripts_and_Output\S2.1.SpikeMatrix_Scripts
     %this is where current script is located and called functions are

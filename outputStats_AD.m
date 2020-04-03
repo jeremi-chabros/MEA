@@ -6,22 +6,21 @@
 
 %get spike matrices (if already done comment out)
 %batchGetSpike
-clear all
-%if got spikes already go to spikes folder:
 
-files = dir('*MPT200*cSpikes_L0.mat');  % where your .mat files are
-    files = files(~contains({files.name}, 'tc'));%remove unwanted files %ctx only
+%if got spikes already go to spikes folder:
+cd 'D:\MECP2_2019_AD\Data_To_Use\2.4.2.TopCultures\best_cSpikes_0'
+
+files = dir('*Spikes*.mat');  % where your .mat files are
 
 sampling_fr = 25000;
 
 fc_figures = 0;%change to 1 to add plots
 g_figures = 0;%graph theory
 
-progressbar
+
 %% loop through 
 for file = 1:length(files)
     %% load and get basic firing
-    tic
         data=load(files(file).name,'*Spikes','channels'); %may need to at try;catch;end loop if channels var not saved with spikes; could load from mat files
         cSpikes=data.cSpikes;
         try 
@@ -43,8 +42,8 @@ output(file).spikes = sum(spikeMat);        %cell containing n. spikes for each 
 FiringRates=spikeCounts/(length(spikeMat)/sampling_fr); %firing rate in seconds
 Active_FRs=FiringRates(find(spikeCounts>9)); %firing rates in Hz of active channels only
 
-if length(ActiveSpikeCounts)<4 
-output(file).mean_FR = 0; %if there are fewer than 4 active channels, set to 0 and exclude culture
+if length(ActiveSpikeCounts)<5 
+output(file).mean_FR = 0; %if there are fewer than 5 active channels, set to 0 and exclude culture
 output(file).median_FR = 0;
 else
 output(file).mean_FR = mean(Active_FRs);
@@ -61,18 +60,17 @@ if isnan(output(file).median_FR);
     output(file).median_FR=0;
 else
 end
-disp('spike stats done')
 
 %% get burst info
 samplingRate=sampling_fr;
 method ='Bakkum';
-%note, Set N = 30 (min number of bursts)
+%note, Set N = 40 (min number of bursts)
 %ensure bursts are excluded if fewer than 3 channels (see inside burst Detect
 %function)
 %to change min channels change line 207 of burstDetect.m
 %to change N (min n spikes) see line 170 of burstDetect.m
-N = 30; minChannel = 3;
-[burstMatrix, burstTimes, burstChannels] = burstDetect(spikeMat, method, samplingRate,N,minChannel);
+
+[burstMatrix, burstTimes, burstChannels] = burstDetect(spikeMat, method, samplingRate);
 nBursts=length(burstMatrix);
 %trainCombine=sum(spikeMatrix, 2);
 if length(burstMatrix)>0
@@ -103,96 +101,106 @@ output(file).frac_in_burst = sp_in_bst/sum(sum(spikeMat));
 %need to go intro burst detect and edit as it is not deleting the bursts
 %with <5 channels from burstChannels and burstTimes hence they are longer
 %need this for easier plotting of burst
-disp('burst stats done')
 
 %% functional connectivity
-method = 'tileCoef';
+
 %get adjM - ideally already created by batch get adjM to save time when re
 %analysing
-active_chanIndex=find(spikeCounts>9);
-    
-if length(active_chanIndex)<3 %set all output to 0 etc. if no activity
-                                    %else run through analyses
-                                    
-     output(file).meanSTTC=0;
-     output(file).STTC_RCtrl=0;
-     output(file).netw_density=0;
-     output(file).meanDegree =0;
-     output(file).CC=0;
-     output(file).PL=58;
-     output(file).SW=0;
-     output(file).RC=0;
-                                        
-     disp('no active channels')
-   
-    
+if ~exist(strcat(files(file).name(1:end-4), '_adjM', '.mat'))
+method = 'tileCoef';
+adjM = getAdjM(spikeMat, method, 0,0.05); %0 means no downsampling; 0.05 is sync window in s
 else
-        
-        active_spike_mat = spikeMat(:,active_chanIndex);
-
-        if ~exist(strcat(files(file).name(1:end-4), '_adjM_0.05', '.mat'))
-
-    active_adjM=getAdjM(active_spike_mat, method, 0,0.05); 
-    active_adjM=active_adjM-eye(size(active_adjM));
-    active_adjM(find(isnan(active_adjM)))=0;
-
-%adjM = getAdjM(spikeMat, method, 0,0.05); %0 means no downsampling; 0.05 is sync window in s
- 
-
-        else
-    adjM=load(strcat(files(file).name(1:end-4), '_adjM_0.05', '.mat'));
+    adjM=load(strcat(files(file).name(1:end-4), '_adjM', '.mat'));
     adjM=adjM.adjM;
-    adjM1= adjM-eye(size(adjM));
-    adjM1(find(isnan(adjM1)))=0;
-    active_adjM=adjM1(active_chanIndex,active_chanIndex); %for extracting
-    %part of full adjmat but now just compute active adjmat
+end
+
+%reorder adjM to channel ID in numerical order: 12,13,14,15,16
+adjM1= adjM-eye(size(adjM));
+adjM1(find(isnan(adjM1)))=0;
+%mean correlation of channels that participate in bursts
+%    bchans=[];
+%    bcvector=[];
+%    for bc=1:length(burstChannels)
+%        bchans=burstChannels{bc,1};
+%        bcvector(length(bcvector)+1:length(bchans)+length(bcvector))=bchans;
+%    end
+%    bchans=unique(bcvector);
+%   active_corrs = adjM1(bchans,bchans);
+%    output(file).meanSTTC=sum(sum(active_corrs))/(length(active_corrs)*(length(active_corrs)-1));
+    %may be better to do this between active channels...rather than those
+    %participating in a burst (as some only participate the one time they
+    %spike
     
-
-        end
-
 %mean correlation of active channels
+active_chanIndex=find(spikeCounts>9);
+active_adjM=adjM1(active_chanIndex,active_chanIndex);
 output(file).meanSTTC=sum(sum(active_adjM))/(length(active_adjM)*(length(active_adjM)-1));
 
+% check active matrix vs whole matrix
+if fc_figures ==1
+    figure
+    imagesc(adjM1)
+    %imagesc(active_adjM)
+    xlabel('Channel number');
+        ylabel('Channel number');
+        title(strcat(files(file).name,{' adj_mat'}))
+aesthetics
+xticks(linspace(5,60,12))
+yticks(linspace(5,60,12))
+
+cb=colorbar
+cb.Limits=[min(min(active_adjM)),1]
+    xlabel('Channel ID');
+        ylabel('Channel ID');
+colormap 'default'
+aesthetics
+box on
+set(gca,'TickLength',[0 0])
+%set(gca,'xtick',[])
+xticks(linspace(1,length(adjM1),length(adjM1))) %adjust to n active channels
+yticks(linspace(1,length(adjM1),length(adjM1))) %adjust to n active channels
+xticklabels(channels(linspace(1,length(adjM1),length(adjM1))))
+yticklabels(channels(linspace(1,length(adjM1),length(adjM1))))
+%cb.Label = 'STTC'
+else
+        disp('fc figures turned off')
+end
 
 %% fc control - randomise FR of each active electrode and compute STTC
     %create randomised controls for each recording and save their control
     %adjMs using the batch get adjM
     
     %load spike mat and find active channels
-
-    %save memory; clear some vars
-    clear spikeMat
-    clear cSpikes
-    clear burstMatrix burstChannels burstTimes Bst nBursts sp_in_bst
-    
-%     for tarly = 1:length(active_spike_mat(1,:))
-%                
-%         rand_spike_vec=active_spike_mat(:,tarly);
-%         rand_spike_vec=rand_spike_vec(randperm(length(rand_spike_vec)));
-%         rand_spike_mat(:,tarly)=rand_spike_vec;
-%         %check distribution
-%         %sts=find(rand_spike_vec==1); %spike times
-%         %sts2=sts(2:length(sts));       %spike times t+1
-%         %ISIsss=sts2-sts(1:end-1);          %spike time t+1 - t
-%         %ISIsss=ISIsss/25000;               %get the ISIs in seconds
-%         %figure
-%         %hist(ISIsss)
-%                             %distribution looks like poison process,
-%                             %positively skewed as mean ISI is low, with a
-%                             %few large ISIs
-%                                %if mean ISI was higher i.e. low mean Firing
-%                                %rate, poisson process would mean less
-%                                %positively skewed, closer to normal but
-%                                %still positvely skewed a bit
-%     end 
-%     adjM2 = getAdjM(rand_spike_mat, method, 0,0.05); %0 means no downsampling; 0.05 is sync window in s
-%     adjM2 = adjM2 - eye(size(adjM2));
-%     
-%     %mean STTC of randomised spike trains with same Fire rate
-%     output(file).STTC_RCtrl=sum(sum(adjM2))/(length(adjM2)*(length(adjM2)-1));
+    active_spike_mat = spikeMat(:,active_chanIndex);
+    for tarly = 1:length(active_spike_mat(1,:))
+               
+        rand_spike_vec=active_spike_mat(:,tarly);
+        rand_spike_vec=rand_spike_vec(randperm(length(rand_spike_vec)));
+        rand_spike_mat(:,tarly)=rand_spike_vec;
+        %check distribution
+        %sts=find(rand_spike_vec==1); %spike times
+        %sts2=sts(2:length(sts));       %spike times t+1
+        %ISIsss=sts2-sts(1:end-1);          %spike time t+1 - t
+        %ISIsss=ISIsss/25000;               %get the ISIs in seconds
+        %figure
+        %hist(ISIsss)
+                            %distribution looks like poison process,
+                            %positively skewed as mean ISI is low, with a
+                            %few large ISIs
+                               %if mean ISI was higher i.e. low mean Firing
+                               %rate, poisson process would mean less
+                               %positively skewed, closer to normal but
+                               %still positvely skewed a bit
+    end 
+    adjM2 = getAdjM(rand_spike_mat, method, 0,0.05); %0 means no downsampling; 0.05 is sync window in s
+    adjM2 = adjM2 - eye(size(adjM2));
+    output(file).STTC_RCtrl=sum(sum(adjM2))/(length(adjM2)*(length(adjM2)-1));
 
     
     if fc_figures ==1
+    active_adjM=getAdjM(active_spike_mat, method, 0,0.05); 
+    active_adjM=active_adjM-eye(size(active_adjM));
+
     %compare
     figure;
     imagesc(active_adjM,[min(min(active_adjM)),1]); %set colouring limits!
@@ -224,7 +232,6 @@ output(file).meanSTTC=sum(sum(active_adjM))/(length(active_adjM)*(length(active_
     else 
     end
 
-disp('fc stats done')
 
 %% graph measures
     %do analysis on active channels active_adjM or adjM1 full adj mat?
@@ -242,17 +249,11 @@ edges(edges < threshold) = 0.0001;
 buEdges=edges;
 buEdges(find(buEdges==0.0001))=0;
 buEdges(find(buEdges>0.0001))=1;
-%remove nodes with no edges in binary network
-active_nodes_vec=find(sum(buEdges>0));
-buEdges=buEdges(active_nodes_vec,active_nodes_vec);
-ActiveChanLabels=channels(active_chanIndex);
-NodeLabels=ActiveChanLabels(active_nodes_vec);
-
 
 %calclate average node degree and density (density is proportion of edges
 %that exist) of active channels; threshold the active adj matrix
 %threshold = prctile(active_adjM(:), 90);
-%threshold = 0.5;
+threshold = 0.5;
      %active_edges=active_adjM;
 %active_edges(active_edges < threshold) = 0.0001; 
 %active_edges(find(buEdges==0.0001))=0;
@@ -260,11 +261,8 @@ NodeLabels=ActiveChanLabels(active_nodes_vec);
 
 %buEdges=buEdges(active_chanIndex,active_chanIndex); %need this if
 %edges are whole mat not just active
-if length(buEdges)==0 %if there are no nodes with edges above threshold
-    output(file).netw_density=0;%else it would be NaN with below formula
-else
+
 output(file).netw_density=sum(sum(buEdges))/(length(buEdges)*(length(buEdges)-1));
-end
 output(file).meanDegree = mean(sum(buEdges));
 
 %plot degree distribution / calculate node degree, cc, pl etc relative to n
@@ -295,10 +293,8 @@ set(gca,'TickLength',[0 0])
 %set(gca,'xtick',[])
 xticks(linspace(1,length(buEdges),length(buEdges))) %adjust to n active channels
 yticks(linspace(1,length(buEdges),length(buEdges))) %adjust to n active channels
-%xticklabels(channels(active_chanIndex))
-%yticklabels(channels(active_chanIndex))
-xticklabels(NodeLabels)
-yticklabels(NodeLabels)
+xticklabels(channels(active_chanIndex))
+yticklabels(channels(active_chanIndex))
 
 
 %figure
@@ -320,8 +316,8 @@ set(gca,'TickLength',[0 0])
 %set(gca,'xtick',[])
 xticks(linspace(1,length(buEdges),length(buEdges))) %adjust to n active channels
 yticks(linspace(1,length(buEdges),length(buEdges))) %adjust to n active channels
-xticklabels(NodeLabels)
-yticklabels(NodeLabels)
+xticklabels(channels(active_chanIndex))
+yticklabels(channels(active_chanIndex))
 
 else
     disp('graph figures turned off')
@@ -346,11 +342,8 @@ for randinho =1:100
 R = makerandCIJ_und(Nnodes,Nedges);
 Cr=clustering_coef_bu(R);
 Cr_V(randinho)=mean(Cr);
-clear R
-clear Cr
 end
 Cr=mean(Cr_V);
-clear Cr_V
 
 output(file).CC=C/Cr;
 
@@ -374,8 +367,8 @@ output(file).CC=C/Cr;
     %set(gca,'xtick',[])
     xticks(linspace(1,length(buEdges),length(buEdges))) %adjust to n active channels
     yticks(linspace(1,length(buEdges),length(buEdges))) %adjust to n active channels
-    xticklabels(NodeLabels)
-    yticklabels(NodeLabels)
+    xticklabels(channels(active_chanIndex))
+    yticklabels(channels(active_chanIndex))
     else 
     end
 
@@ -401,15 +394,13 @@ for randinho =1:100
 R = makerandCIJ_und(Nnodes,Nedges);
 
 D = distance_bin(R);
-PLr_vec(randinho)=charpath(D,0,0);
-clear R
-clear D
+PLr_vec(randinho)=charpath(R,0,0);
 end
 PLr=mean(PLr_vec);
 
 output(file).PL=PL/PLr;
 else
- output(file).PL=length(active_chanIndex)-1; %could instead set to the number of nodes -1 
+ output(file).PL=60;
 end
 
 %% small world
@@ -437,7 +428,7 @@ if g_figures==1 & round(max(sum(buEdges))/5)*5>0
         find(channels==62),find(channels==63),find(channels==64),find(channels==65),...
         find(channels==66),find(channels==67),find(channels==68),find(channels==71),...
         find(channels==72),find(channels==73),find(channels==74),find(channels==75),...
-        find(channels==76),find(channels==77),find(channels==78),...
+        find(channels==76),find(channels==77),find(channels==78),find(channels==81),...
         find(channels==82),find(channels==83),find(channels==84),find(channels==85),...
         find(channels==86),find(channels==87)];
     
@@ -508,35 +499,23 @@ output(file).RC=RC/RCr;
 else 
 output(file).RC=0;    
 end
-disp('graph stats done')
+%%
 
-
-
-    end %end of loop if no active channels
-disp('file done')
-toc
 progressbar(file/length(files));
 
 clear Spikes
+clear spikeMat
 clear spikeCounts
 clear ActiveSpikeCounts
 clear FiringRates
 clear Active_FRs
-clear rand_spike_vec
-clear rand_spike_mat
-clear buEdges active_adjM active_chanIndex active_spike_mat adjM1 adjM2 
-clear channels   edges    tarly 
+
 end
 
 
-        %% save
-disp('saving...')
-method = 'cwt';
-threshold = '0';
-fileName = strcat(method,'_' ,threshold, '_newCultures_MPhilMethod', '.mat');
-save(fileName, 'output');
-xldata = struct2table(output);
-xldata(:,'spikes') = [];
-writetable(xldata, strcat(fileName(1:end-4),'.xlsx'))
-
+        %% save 
+        method = 'cwt';
+        threshold = '0';
+        fileName = strcat(method, threshold, '_stats', '.mat'); 
+        save(fileName, 'output');
         

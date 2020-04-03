@@ -1,8 +1,8 @@
-function batchGetSpike 
+function batchGetSpikeC 
     % read all .mat files in directory, look for spikeMatrix or dat 
     % then extract spikes, save as SPARSE MATRIX 
     
-    
+    clear all
     % note that this overwrites rather than append to the info file
     
     % I initially wanted to do this together with batch processing, 
@@ -16,8 +16,11 @@ function batchGetSpike
     
     %% some parameters 
 
-    files = dir('*DIV28*.mat');  % where your .mat files are 
-    %files = files(~contains({files.name}, 'Spikes'));%remove unwanted files
+    %files = dir('190830_slice1stim5_cleaned.mat');  % where your .mat files are 
+    files = dir('*SMPT*_2*');  % where your .mat files are 
+    files = files(~contains({files.name}, 'Spikes'));
+    files = files(~contains({files.name}, 'Filt'));%remove unwanted files
+    fprintf(['<strong> \n \n','--> ',int2str(length(files)),' files remaining', '\n \n </strong>'])
     % variable name containing MEA voltage recording should be either of 
     % these two:
     voltageVar = 'electrodeMatrix'; 
@@ -41,18 +44,21 @@ function batchGetSpike
         % data = data.(voltageVar); % since matlab load struct 
         % data = electrodeMatrix
         % detect spikes
-        tic;
-         mSpikes = sparse(getSpikeMatrixAlex(data, 'Manuel', 5));
-        %tSpikes = sparse(getSpikeMatrixAlex(data, 'Tim', 14)); %AD edited to use my getSpikeMatrix.m edited script; threshold changed from 8 to 12
+        tic; 
+        % mSpikes = sparse(getSpikeMatrix(data, 'Manuel', 5));
+        % tSpikes = sparse(getSpikeMatrixAlex(data, 'Tim', 14)); %AD edited to use my getSpikeMatrix.m edited script; threshold changed from 8 to 12
         % pSpikes = sparse(getSpikeMatrix(data, 'Prez', 4));
-         %L=0; %changed L to 0 to confirm it changes spike rates - it did indeed increase them as it should
-         %cSpikes = sparse(getSpikeMatrixAlex(data, 'cwt', 0, L)); %AD added, need to adjust loss parameter
+         L=0.1254; %changed L to 0 to confirm it changes spike rates - it did indeed increase them as it should
+         % L = log(false detection / false omission) / 36.7368
+         % e.g. if you want low sensitivity (cost of false detection 1000x
+         % greater), do log(1000)/36.7368 to derive L 
+         cSpikes = sparse(getSpikeMatrixAlex(data, 'cwt', 0, L)); %AD added, need to adjust loss parameter
         toc
     
         %% save 
-        fileName = strcat(files(file).name(1:end-4), '_mSpikes_5', '.mat'); 
+        fileName = strcat(files(file).name(1:end-4), '_cSpikes_L0.1254', '.mat'); 
         % save(fileName, 'mSpikes', 'tSpikes', 'pSpikes');
-        save(fileName, 'mSpikes','channels','thresholds');
+        save(fileName, 'cSpikes','channels');
         progressbar(file/length(files));
     end 
     %D:\MECP2_2019_AD\Scripts_and_Output\S2.1.SpikeMatrix_Scripts

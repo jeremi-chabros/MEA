@@ -5,8 +5,8 @@
 %% get adjacency matrices
 close all; clearvars -except refPeriod_ms
 
-files = dir('*200127*FTD*slice2*mSpikes_3.mat');                   % where your .mat files are
-files(2) = dir('*200127*FTD*slice3*mSpikes_3.mat');                   % where your .mat files are
+files = dir('*200127*FTD*slice2_mSpikes_4.mat');                   % where your .mat files are
+files(2) = dir('*200127*FTD*slice3_mSpikes_4.mat');                   % where your .mat files are
 
 files = files(~contains({files.name}, 'TTX'));
 files = files(~contains({files.name}, 'ttx'));
@@ -19,7 +19,7 @@ files = files(~contains({files.name}, '191210'));
 
 %%%%%%% set these parameters first:
 method = 'tileCoef';
-sync_win_s = [0.125 0.150 0.175 0.2]; %synchroncity window in seconds; e.g. 1 is +/- 1 s is considered synchronous (2DeltaT = 2 s)
+sync_win_s = [2 3 4 5 6]; %synchroncity window in seconds; e.g. 1 is +/- 1 s is considered synchronous (2DeltaT = 2 s)
 rec_length_s = 360;
 fs = 25000;
 rec_length_samps = fs * rec_length_s;
@@ -84,6 +84,10 @@ for file = 1:length(files)
     xticks(1:length(sync_windows))
     xticklabels(sync_win_s*1000)
     xlabel('Synchronicity window (ms)')
+    if sum(sync_win_s*1000 > 999) >= 1
+        xticklabels(round(sync_win_s,1));
+        xlabel('Synchronicity window (s)')
+    end
     set(gca,'TickDir','out')
     
     set(gca, 'FontSize', 14)

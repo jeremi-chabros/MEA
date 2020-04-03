@@ -8,8 +8,9 @@
 %batchGetSpike
 clear all
 %if got spikes already go to spikes folder:
+cd 'D:\MECP2_2019_AD\Data_To_Use\2.4.2.TopCultures\best_cSpikes_0'
 
-files = dir('*MPT200*cSpikes_L0.mat');  % where your .mat files are
+files = dir('*Spikes_L-0.*.mat');  % where your .mat files are
     files = files(~contains({files.name}, 'tc'));%remove unwanted files %ctx only
 
 sampling_fr = 25000;
@@ -71,8 +72,8 @@ method ='Bakkum';
 %function)
 %to change min channels change line 207 of burstDetect.m
 %to change N (min n spikes) see line 170 of burstDetect.m
-N = 30; minChannel = 3;
-[burstMatrix, burstTimes, burstChannels] = burstDetect(spikeMat, method, samplingRate,N,minChannel);
+
+[burstMatrix, burstTimes, burstChannels] = burstDetect(spikeMat, method, samplingRate);
 nBursts=length(burstMatrix);
 %trainCombine=sum(spikeMatrix, 2);
 if length(burstMatrix)>0
@@ -130,7 +131,7 @@ else
         
         active_spike_mat = spikeMat(:,active_chanIndex);
 
-        if ~exist(strcat(files(file).name(1:end-4), '_adjM_0.05', '.mat'))
+        if ~exist(strcat(files(file).name(1:end-4), '_adjM', '.mat'))
 
     active_adjM=getAdjM(active_spike_mat, method, 0,0.05); 
     active_adjM=active_adjM-eye(size(active_adjM));
@@ -140,7 +141,7 @@ else
  
 
         else
-    adjM=load(strcat(files(file).name(1:end-4), '_adjM_0.05', '.mat'));
+    adjM=load(strcat(files(file).name(1:end-4), '_adjM', '.mat'));
     adjM=adjM.adjM;
     adjM1= adjM-eye(size(adjM));
     adjM1(find(isnan(adjM1)))=0;
@@ -165,31 +166,31 @@ output(file).meanSTTC=sum(sum(active_adjM))/(length(active_adjM)*(length(active_
     clear cSpikes
     clear burstMatrix burstChannels burstTimes Bst nBursts sp_in_bst
     
-%     for tarly = 1:length(active_spike_mat(1,:))
-%                
-%         rand_spike_vec=active_spike_mat(:,tarly);
-%         rand_spike_vec=rand_spike_vec(randperm(length(rand_spike_vec)));
-%         rand_spike_mat(:,tarly)=rand_spike_vec;
-%         %check distribution
-%         %sts=find(rand_spike_vec==1); %spike times
-%         %sts2=sts(2:length(sts));       %spike times t+1
-%         %ISIsss=sts2-sts(1:end-1);          %spike time t+1 - t
-%         %ISIsss=ISIsss/25000;               %get the ISIs in seconds
-%         %figure
-%         %hist(ISIsss)
-%                             %distribution looks like poison process,
-%                             %positively skewed as mean ISI is low, with a
-%                             %few large ISIs
-%                                %if mean ISI was higher i.e. low mean Firing
-%                                %rate, poisson process would mean less
-%                                %positively skewed, closer to normal but
-%                                %still positvely skewed a bit
-%     end 
-%     adjM2 = getAdjM(rand_spike_mat, method, 0,0.05); %0 means no downsampling; 0.05 is sync window in s
-%     adjM2 = adjM2 - eye(size(adjM2));
-%     
-%     %mean STTC of randomised spike trains with same Fire rate
-%     output(file).STTC_RCtrl=sum(sum(adjM2))/(length(adjM2)*(length(adjM2)-1));
+    for tarly = 1:length(active_spike_mat(1,:))
+               
+        rand_spike_vec=active_spike_mat(:,tarly);
+        rand_spike_vec=rand_spike_vec(randperm(length(rand_spike_vec)));
+        rand_spike_mat(:,tarly)=rand_spike_vec;
+        %check distribution
+        %sts=find(rand_spike_vec==1); %spike times
+        %sts2=sts(2:length(sts));       %spike times t+1
+        %ISIsss=sts2-sts(1:end-1);          %spike time t+1 - t
+        %ISIsss=ISIsss/25000;               %get the ISIs in seconds
+        %figure
+        %hist(ISIsss)
+                            %distribution looks like poison process,
+                            %positively skewed as mean ISI is low, with a
+                            %few large ISIs
+                               %if mean ISI was higher i.e. low mean Firing
+                               %rate, poisson process would mean less
+                               %positively skewed, closer to normal but
+                               %still positvely skewed a bit
+    end 
+    adjM2 = getAdjM(rand_spike_mat, method, 0,0.05); %0 means no downsampling; 0.05 is sync window in s
+    adjM2 = adjM2 - eye(size(adjM2));
+    
+    %mean STTC of randomised spike trains with same Fire rate
+    output(file).STTC_RCtrl=sum(sum(adjM2))/(length(adjM2)*(length(adjM2)-1));
 
     
     if fc_figures ==1
@@ -335,22 +336,26 @@ C=clustering_coef_bu(buEdges);
 C=mean(C);
 alpha=50; %of edges to rewire
 
-for randinho =1:100
+%for randinho =1:100
 %R = randomizer_bin_und(buEdges,alpha); % use this to preserve degree distribution
 %HOWEVER, does not work with low no. nodes
     %if not preserved, change alpha
     
     %randomise preserving no. nodes and edges (i.e. density but not degree distribution)
-    Nnodes=length(buEdges);
-    Nedges=sum(sum(buEdges))/2; %note need to divide by 2 or random edge mat will have 2x as many connections
-R = makerandCIJ_und(Nnodes,Nedges);
+%    Nnodes=length(buEdges);
+%    Nedges=sum(sum(buEdges))/2; %note need to divide by 2 or random edge mat will have 2x as many connections
+%R = makerandCIJ_und(Nnodes,Nedges);
+%Cr=clustering_coef_bu(R);
+%Cr_V(randinho)=mean(Cr);
+%clear R
+%lear Cr
+%end
+%Cr=mean(Cr_V);
+%clear Cr_V
+
+[R,eff]=randmio_und(buEdges, 100) %preserves density and distribution
 Cr=clustering_coef_bu(R);
-Cr_V(randinho)=mean(Cr);
-clear R
-clear Cr
-end
-Cr=mean(Cr_V);
-clear Cr_V
+Cr=mean(Cr);
 
 output(file).CC=C/Cr;
 
@@ -391,21 +396,25 @@ PL=charpath(D,0,0); % 0 and 0 excludes self connections and infinities (non conn
 
 %random controls
 
-for randinho =1:100
+%for randinho =1:100
 %R = randomizer_bin_und(buEdges,alpha); % check node degree distribution
     %if not preserved, change alpha
 
     %randomise preserving no. nodes and edges (i.e. density but not degree distribution)
-    Nnodes=length(buEdges);
-    Nedges=sum(sum(buEdges))/2; %note need to divide by 2 or random edge mat will have 2x as many connections
-R = makerandCIJ_und(Nnodes,Nedges);
+%    Nnodes=length(buEdges);
+%    Nedges=sum(sum(buEdges))/2; %note need to divide by 2 or random edge mat will have 2x as many connections
+%R = makerandCIJ_und(Nnodes,Nedges);
+%
+%D = distance_bin(R);
+%PLr_vec(randinho)=charpath(D,0,0);
+%clear R
+%clear D
+%end
+%PLr=mean(PLr_vec);
 
-D = distance_bin(R);
-PLr_vec(randinho)=charpath(D,0,0);
-clear R
-clear D
-end
-PLr=mean(PLr_vec);
+Dr = distance_bin(R);
+PLr=charpath(Dr,0,0); % 0 and 0 excludes self connections and infinities (non connected) respectively
+
 
 output(file).PL=PL/PLr;
 else
@@ -487,22 +496,25 @@ if round(max(sum(buEdges))/5)*5>0
 k=max(sum(buEdges));
 [Rc,Nk,Ek] = rich_club_bu(buEdges,k);
 RC=max(Rc);
-
-%random controls
 maxKrand = min(find(Rc==RC));
-for randinho =1:100
+%random controls
+
+%for randinho =1:100
 %R = randomizer_bin_und(buEdges,alpha); % check node degree distribution
     %if not preserved, change alpha
 %randomise preserving no. nodes and edges (i.e. density but not degree distribution)
-    Nnodes=length(buEdges);
-    Nedges=sum(sum(buEdges))/2; %note need to divide by 2 or random edge mat will have 2x as many connections
-R = makerandCIJ_und(Nnodes,Nedges);
+%    Nnodes=length(buEdges);
+%    Nedges=sum(sum(buEdges))/2; %note need to divide by 2 or random edge mat will have 2x as many connections
+%R = makerandCIJ_und(Nnodes,Nedges);
     
 
-[Rc,Nk,Ek] = rich_club_bu(R,maxKrand);
-RCr_vec(randinho)=max(Rc);
-end
-RCr=mean(RCr_vec);
+%[Rc,Nk,Ek] = rich_club_bu(R,maxKrand);
+%RCr_vec(randinho)=max(Rc);
+%end
+%RCr=mean(RCr_vec);
+[Rcr,Nk,Ek] = rich_club_bu(R,maxKrand);
+RCr=max(Rcr);
+
 
 output(file).RC=RC/RCr;
 else 
@@ -529,14 +541,9 @@ clear channels   edges    tarly
 end
 
 
-        %% save
-disp('saving...')
-method = 'cwt';
-threshold = '0';
-fileName = strcat(method,'_' ,threshold, '_newCultures_MPhilMethod', '.mat');
-save(fileName, 'output');
-xldata = struct2table(output);
-xldata(:,'spikes') = [];
-writetable(xldata, strcat(fileName(1:end-4),'.xlsx'))
-
+        %% save 
+        method = 'cwt';
+        threshold = '0';
+        fileName = strcat(method, threshold, '_stats_FINAL_ko', '.mat'); 
+        save(fileName, 'output');
         

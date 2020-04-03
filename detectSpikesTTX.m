@@ -1,4 +1,4 @@
-function [spikeTrain, finalData, threshold] = detectSpikes(data, method, multiplier, L,refPeriod_ms)
+function [spikeTrain, finalData, threshold] = detectSpikesTTX(data, method, multiplier, L)
 
 % input 
     % data: a n x 1 vector containing the signal, where n is the number of
@@ -41,7 +41,7 @@ fs = 25000; % sampling rate
 if strcmp(method,'Prez') 
     par.detect_order = 4; % default, no idea why specifically this number
     par.ref_ms = 1.5; % refractor period in ms, not sure when this is going to be used...
-    refPeriod = refPeriod_ms * 10^(-3) * fs; % covert to frames
+    refPeriod = par.ref_ms * 10^(-3) * fs; % covert to frames
     fmin_detect = 300; 
     fmax_detect = 8000;
     [b,a] = ellip(par.detect_order,0.1,40,[fmin_detect fmax_detect]*2/fs);
@@ -130,7 +130,7 @@ if strcmp(method,'Tim')
     spikeTrain = double(spikeTrain)';
     
     % refractory period 
-    refPeriod = refPeriod_ms * 10^-3 * fs; % 2ms 
+    refPeriod = 2.0 * 10^-3 * fs; % 2ms 
     for i = 1:length(spikeTrain);
        if spikeTrain(i) == 1; 
            refStart = i + 1; % start of refractory period 
@@ -173,20 +173,18 @@ if strcmp(method,'Manuel')
     filteredData = filtfilt(b, a, double(data)); 
 
     % finding threshold and spikes
-    m = mean(filteredData); 
-    s = std(filteredData); 
+    % m = mean(filteredData); 
+    % s = std(filteredData); 
     % multiplier = 5;
-    threshold = m - multiplier*s; 
+    % threshold = m - multiplier*s; 
     % negThreshold = m - 8 * s; % maximum threshold, a simple artefact removal method 
-    spikeTrain = filteredData < threshold;
-    % remove spikes lower in amplitude than 8 uV
-    % should prevent spikes in ref and grounded channels
-    if threshold > -8
-        spikeTrain = zeros(size(spikeTrain));
-    end    
+    spikeTrain = filteredData < threshold; 
+    
+   
+ 
 
     % impose refractory period
-    refPeriod = refPeriod_ms * 10^-3 * fs; % 2ms 
+    refPeriod = 2.0 * 10^-3 * fs; % 2ms 
     % I think there is a more efficient/elegant way to do this, but I haven't 
     % taken time to think about it yet 
     spikeTrain = double(spikeTrain);
@@ -263,7 +261,7 @@ if strcmp(method,'cwt')
     spikeTrain(spikeFrames) = 1;
     
      % impose refractory period
-     refPeriod = refPeriod_ms * 10^-3 * fs; % 2ms 
+     refPeriod = 2.0 * 10^-3 * fs; % 2ms 
     % I think there is a more efficient/elegant way to do this, but I haven't 
     % taken time to think about it yet 
     % refractory period
@@ -306,7 +304,7 @@ if strcmp(method,'abs')
     
 
     % impose refractory period
-    refPeriod = refPeriod_ms * 10^-3 * fs; % 2ms 
+    refPeriod = 2.0 * 10^-3 * fs; % 2ms 
     % I think there is a more efficient/elegant way to do this, but I haven't 
     % taken time to think about it yet 
     spikeTrain = double(spikeTrain);

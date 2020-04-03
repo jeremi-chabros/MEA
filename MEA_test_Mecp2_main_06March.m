@@ -30,39 +30,64 @@ the minus sign if using a negative threshold
 my_email = 'awed2@cam.ac.uk';
 data_and_scripts_dir = 'D:\MECP2_2019_AD\Scripts_and_Output\S1.2.File_Conversion_Output';
 cd(data_and_scripts_dir)
-files = dir('*slice*.mat');                   % where your .mat files are
-files = files(~contains({files.name}, 'TTX'));
-files = files(~contains({files.name}, 'ttx'));
-files = files(~contains({files.name}, 'Spikes'));
-files = files(~contains({files.name}, 'stim'));
+files1 = dir('MPT200107*DIV35.mat');
+files2 = dir('MPT200108*DIV35.mat');
+files3 = dir('MPT200109*DIV35.mat');
+files4 = dir('MPT200115*DIV*.mat');
+    files4 = files4(~contains({files4.name}, 'DIV49'));
+        files4 = files4(~contains({files4.name}, 'DIV42'));
+            files4 = files4(~contains({files4.name}, 'DIV35'));
+files5 = dir('MPT200205*DIV*.mat');
+    files5 = files5(~contains({files5.name}, 'DIV14'));
+        files5 = files5(~contains({files5.name}, 'DIV28'));
+            files5 = files5(~contains({files5.name}, 'Spikes'));
+files6 = dir('MPT200209*DIV*.mat');
+
+
+
+files = files(~contains({files.name}, 'TTX','IgnoreCase',true));
+% files = files(~contains({files.name}, 'ttx'));
+ files = files(~contains({files.name}, 'Spikes'));
+% files = files(~contains({files.name}, 'stim'));
 % files = files(~contains({files.name}, 'edited'));
 % files = files(~contains({files.name}, '2min'));
-% files = files(~contains({files.name}, '2001'));
-files = files(~contains({files.name}, 'FTD'));
-files = files(~contains({files.name}, 'spine'));
-files = files(~contains({files.name}, '190830'));
-%  files = files(~contains({files.name}, 'Slice2'));
-% files = files(~contains({files.name}, 'MPT200107_1A_DIV07'));
-% files = files(~contains({files.name}, 'MPT200107_1A_DIV14'));
-% %
+files = files(~contains({files.name}, 'MPT1'));
+files = files(~contains({files.name}, 'DIV12'));
+files = files(~contains({files.name}, 'DIV49'));
+files = files(~contains({files.name}, '200209'));
+files = files(~contains({files.name}, '200220'));
+%  files = files(~contains({files.name}, 'DIV3'));
+ files = files(~contains({files.name}, 'DIV4'));
+files = files(~contains({files.name}, 'DIV5'));
+
+% files = files(39:end);
+
+% files2 = dir('*MPT200115*DIV49*.mat');  
+% files2 = files2(~contains({files2.name}, 'TTX','IgnoreCase',true));
+% files2 = files2(~contains({files2.name}, 'Spikes'));
+% files3 = dir('*MPT200205*DIV28*.mat');  
+% files3 = files3(~contains({files3.name}, 'TTX','IgnoreCase',true));
+% files3 = files3(~contains({files3.name}, 'Spikes'));
+% files = [files;files2;files3];
+
 %SPIKE DETECTION METHODS AND PARAMETERS
 %option one: two methods, three parameters for each
-% meths   ={'Manuel';'abs'};
-% params  =[3.5,3.25,3.75;                                % Threshold
-%     -17,-18,-19]';                         % L parameter
+%meths   ={'Manuel';'cwt'};
+%params  =[4,5,6;                                % Threshold
+%    -0.1254,0,0.1254]';                         % L parameter
 
 %option two: two methods, one parameter for each
-%meths   ={'Manuel';'cwt'};
-%params  =[5;0]';                               % threshold; L parameter
+% meths   ={'Manuel';'cwt'};
+% params  =[5;0]';                               % threshold; L parameter
 
 %option three: one method, one parameter
-% meths   ={'cwt'};                              % one method only for speed
-% params  =[4,0];
+meths   ={'cwt'};                              % one method only for speed
+params  =[4,0];
 
 %option four: one method, three parameters
-meths   ={'Manuel'};
-params  =[4,5,6;                                % Threshold
-    -0.1254,0,0.1254]';                         % L parameter
+% meths   ={'Manuel'};
+% params  =[4,4.25,4.5;                                % Threshold
+%     -0.1254,0,0.1254]';                         % L parameter
 %
 % CODE TO GET SPIKES AND SAVE:
 fprintf(strcat('\n','\n','getting spike matrices...','\n','\n'))
@@ -72,17 +97,13 @@ progressbar('files','parameters','methods')
 warning('off','MATLAB:load:variableNotFound') %turn warning off for now -
 %just warns that a variable that i dont use anymore is not found
 
-refPeriod_ms = 1.5; %choose refractory period in ms
+refPeriod_ms = 2.0; %choose refractory period in ms
 for m = 1:length(meths)
     method              =       meths{m}
     
     for p = 1:size(params,1);
         L               =       params(p+size(params,1))
         multiplier      =       params(p)
-        if strcmp(meths{m},'abs')
-            multiplier  =       params(p+size(params,1))
-            disp('adjusted multiplier for abs method')
-        end
         
         batchGetSpike_function(data_and_scripts_dir,files,method,multiplier,L,refPeriod_ms,my_email)
         progressbar([],p/size(params,1),[]);       %update parameter progress
@@ -114,18 +135,18 @@ close all; clearvars -except refPeriod_ms
 fprintf(strcat('\n','\n','creating raster plots...','\n','\n'))
 
 %inputs:
-files = dir('*FTD*based_on_mSpikes_3.5*.mat');  % where your .mat files are
 % files = dir('*FTD*mSpikes_3.mat');                   % where your .mat files are
-% files = dir('*MPT2001*cSpikes_L0.mat');                   % where your .mat files are
-% files = files(~contains({files.name}, 'TTX'));
-% files = files(~contains({files.name}, 'ttx'));
-% files = files(~contains({files.name}, 'stim'));
-% % files = files(~contains({files.name}, 'edited'));
-% % files = files(~contains({files.name}, '2min'));
-% % files = files(~contains({files.name}, 'adjM'));
-% files = files(~contains({files.name}, '191210'));
+files = dir('*PVAi*Spikes*.mat');                   % where your .mat files are
+files = files(~contains({files.name}, 'TTX'));
+files = files(~contains({files.name}, 'ttx'));
+files = files(~contains({files.name}, 'stim'));
+files = files(~contains({files.name}, 'edited'));
+files = files(~contains({files.name}, '2min'));
+files = files(~contains({files.name}, 'adjM'));
+files = files(~contains({files.name}, '191210'));
 %files = files(~contains({files.name}, 'stim'));
 %files = files(~contains({files.name}, '_4'));       % remove ones already done
+% files = files(41:end);
 
 %code:
 for i=1:length(files)
@@ -145,19 +166,12 @@ for i=1:length(files)
     elseif ~~exist('mSpikes')
         spikeMatrix = full(mSpikes);
         
-    elseif ~~exist('rand_spikeMat_sparse')
-        spikeMatrix = full(rand_spikeMat_sparse);
-        
     else
         disp('error - cant get spike mat')
     end
     
     %remove spikes from ref
-    try
-        spikeMatrix(:,find(channels==15))=zeros(size(spikeMatrix(:,find(channels==15))));
-    catch
-        disp('no channels variable cannot ground elec')
-    end
+    spikeMatrix(:,find(channels==15))=zeros(size(spikeMatrix(:,find(channels==15))));
     %sum(spikeMatrix(:,find(channels==15))); %check no spikes
     %correction if length rec in s is not a whole number
     
@@ -183,15 +197,12 @@ for i=1:length(files)
     recordDuration = round(length(spikeMatrix)); %in samples
     %downSpikeMatrix = downSampleSum_org(spikeMatrix, recordDuration * 1/fs);
     downFactor = 25000;
-    if ~~exist('rand_spikeMat_sparse')
-        downFactor = 1000;
-    end
     downSpikeMatrix = downSampleSum(spikeMatrix, recordDuration/downFactor);
     new_fs = fs/downFactor;
     
     figure
-    %imagesc(log10(downSpikeMatrix'))
-    imagesc(downSpikeMatrix')
+    imagesc(log10(downSpikeMatrix'))
+%     imagesc(downSpikeMatrix')
     
     aesthetics
     ylabel('Electrode')
@@ -205,14 +216,13 @@ for i=1:length(files)
     cb.Location = 'Southoutside';
     cb.Box = 'off';
     set(gca, 'FontSize', 14)
-    ylimit_cbar = 40;
+    ylimit_cbar = 3;
     caxis([0,ylimit_cbar]) %set colorbar axis limits; also adjusts colour
     %below command does not adjust colour hence need for caxis command
     %remove decimal ticks e.g. 0.5 Hz
-    cb.Ticks = linspace(0,ylimit_cbar,ylimit_cbar/10+1);%(start,end,number of numbers)
+    cb.Ticks = linspace(0,ylimit_cbar,ylimit_cbar/1+1);%(start,end,number of numbers)
     %below is for plotting log scale, labelling in raw spike count
-    %cb.Ticks = linspace(0,ylimit_cbar,ylimit_cbar+1);%(start,end,number of numbers)
-    %cb.TickLabels = 10.^(linspace(0,ylimit_cbar,ylimit_cbar+1));
+    cb.TickLabels = 10.^(linspace(0,ylimit_cbar,ylimit_cbar+1));
     
     yticks([1, 10:10:60])
     
@@ -439,21 +449,20 @@ end
 %afterFile       =
 %bar_chart_organoid_basic_fcn(beforeFile,afterFile,beforeLabel,afterLabel)
 
-%% get adjacency matrices
+%% get adjacency matrices 
 close all; clearvars -except refPeriod_ms
 
-files = dir('*FTD*mSpikes_4.mat');                   % where your .mat files are
-files = files(~contains({files.name}, 'TTX'));
-files = files(~contains({files.name}, 'ttx'));
-files = files(~contains({files.name}, 'stim'));
-files = files(~contains({files.name}, 'edited'));
-files = files(~contains({files.name}, '2min'));
-files = files(~contains({files.name}, 'adjM'));
+files = dir('*PVAi*Spikes*.mat');  % where your .mat files are
 files = files(~contains({files.name}, '191210'));
+files = files(~contains({files.name}, 'TTX','IgnoreCase',true));
+files = files(~contains({files.name}, 'adjM'));
+% files2 = dir('*MPT200115*DIV49*cSpikes_L0*.mat');  
+% files3 = dir('*MPT200205*DIV28*cSpikes_L0*.mat');  
+% files = [files;files2;files3];
 
 %%%%%%% set these parameters first:
 method = 'tileCoef';
-sync_win_s = 3; %synchroncity window in seconds; e.g. 1 is +/- 1 s is considered synchronous (2DeltaT = 2 s)
+sync_win_s = 0.05; %synchroncity window in seconds; e.g. 1 is +/- 1 s is considered synchronous (2DeltaT = 2 s)
 rec_length_s = 360;
 fs = 25000;
 rec_length_samps = fs * rec_length_s;
@@ -469,27 +478,18 @@ batch_getAdj_fcn(method,files,sync_win,num_samples,ds_rate);
 
 %% load adjMs and save as PNG
 clear files adjM
-files = dir('*FTD*_mSpikes_4_adjM_3*.mat');  % where your .mat files are
-%files = files(~contains({files.name}, 'Slice17'));
-%files = files(~contains({files.name}, 'Slice16'));
-%files = files(~contains({files.name}, 'Slice15'));
-%files = files(~contains({files.name}, 'Slice14'));
-%files = files(~contains({files.name}, 'Slice13'));
-%files = files(~contains({files.name}, 'Slice12'));
-%files = files(~contains({files.name}, 'Slice11'));
-%files = files(~contains({files.name}, 'Slice10'));
-%files = files(~contains({files.name}, 'Slice9'));
-files = files(~contains({files.name}, 'reord'));
-%files = files(~contains({files.name}, 'stim'));
-files = files(~contains({files.name}, '191210'));
+files = dir('*PVAi*Spikes*adjM*.mat');  % where your .mat files are
+% files = files(~contains({files.name}, 'TTX','IgnoreCase',true));
+% %files = files(~contains({files.name}, 'adjM'));
+% files2 = dir('*MPT200115*DIV49*cSpikes_L0_adjM*.mat');  
+% files3 = dir('*MPT200205*DIV28*cSpikes_L0_adjM*.mat');  
+% files = [files;files2;files3];
+% files = files(~contains({files.name}, 'reord'));
 
 for i=1:length(files)
     fileName    =   files(i).name;
     if ~exist(strcat(fileName(1:end-4),'_connectivity_matrix_',num2str(sync_win/ds_rate),'.png'))
         load(fileName);
-        if ~~exist('adjM2') & ~exist('adjM')
-            adjM = adjM2;
-        end
         figure; imagesc(adjM);
         aesthetics
         ylabel('Electrode')
@@ -518,7 +518,7 @@ for i=1:length(files)
         ax.TitleFontSizeMultiplier = 0.7;
         %save as PNG
         fprintf(strcat('\n','\n',files(i).name(1:end-4),' saving adjM...', '\n','\n'))
-        saveas(gcf,strcat(fileName(1:end-4),'_connectivity_matrix_',num2str(sync_win/ds_rate),'.png'));
+        saveas(gcf,strcat(fileName(1:end-4),'_connectivity_matrix.png')); %actual_sync_win=num2str(sync_win*(rec_length_samps/num_samples))
         close all; clear adjM fileName fileName1
     else
     end
@@ -527,17 +527,15 @@ end
 
 %% save heatMaps
 clearvars -except refPeriod_ms
-files = dir('*FTD*based_on_mSpikes_3.5*.mat*');  % where your .mat files are
+files = dir('*PVAi*Spikes*.mat');  % where your .mat files are
 files = files(~contains({files.name}, '191210'));
-% files = files(~contains({files.name}, 'ttx'));
-% files = files(~contains({files.name}, 'TTX'));
-files = files(~contains({files.name}, 'stim'));
-%files = files(~contains({files.name}, 'Slice13'));
-%files = files(~contains({files.name}, 'Slice12'));
-%files = files(~contains({files.name}, 'Slice11'));
-%files = files(~contains({files.name}, 'Slice10'));
-%files = files(~contains({files.name}, 'Slice9'));
-%files = files(~contains({files.name}, 'adjM'));
+files = files(~contains({files.name}, 'TTX','IgnoreCase',true));
+files = files(~contains({files.name}, 'adjM'));
+% files2 = dir('*MPT200115*DIV49*cSpikes_L0*.mat');  
+% files3 = dir('*MPT200205*DIV28*cSpikes_L0*.mat');  
+% files = [files;files2;files3];
+% 
+
 option = 'logc'; %logc, count or rate (gets capped around 10,000 spikes)
 fprintf(strcat('\n','\n','getting heat maps of:','\n',option,...
     ' spikes' ,'\n','\n'))
@@ -545,15 +543,15 @@ batch_getHeatMaps_fcn(files,option)
 
 %% identify most spikey channel and period within that channel
 close all; clearvars -except refPeriod_ms
-files = dir('200127*FTD*Slice8*mSpikes_3.5*.mat*');  % where your .mat files are
-files = files(~contains({files.name}, 'cleaned'));
-files = files(~contains({files.name}  , 'stim'));
-% files = files(~contains({files.name}, 'ttx'));
-% files = files(~contains({files.name}, 'TTX'));
+files = dir('*MPT2001*_cSpikes_L0.mat*');  % where your .mat files are
+files = files(~contains({files.name}, 'TTX'));
+files = files(~contains({files.name}  , 'ttx'));
+%files = files(~contains({files.name}, 'Slice1.'));
+%files = files(~contains({files.name}, 'Slice1_'));
 %files = files(~contains({files.name}, 'Slice2'));
 %files = files(~contains({files.name}, 'Slice3'));
 %files = files(~contains({files.name}, 'Slice4'));
-%files = files(~contains({files.name}, 'adjM'));
+files = files(~contains({files.name}, 'DIV07'));
 files = files(~contains({files.name}, '191210'));
 %files = files(~~contains({files.name}, 'Spikes')); %must contain 'Spikes')
 
@@ -561,7 +559,6 @@ fprintf(strcat('\n','\n','plotting spike overlays and marked filtered traces',..
     '\n','for spikiest channel' ,'\n','\n'))
 
 option = 'diagonal';
-progressbar('files')
 for i = 1:length(files)
     % get spike mat
     fileName = files(i).name;
@@ -576,7 +573,7 @@ for i = 1:length(files)
         parameter = str2double(spike_suffix(11:end));
     elseif  strcmp(spike_suffix(2:3),'aS')
         method = 'abs';
-        parameter = str2double(spike_suffix(end-7:end));
+        parameter = str2double(spike_suffix(10:end));
     else
         disp('error! Cannot determine spike detection mehtod for overlay')
     end
@@ -585,7 +582,6 @@ for i = 1:length(files)
     % removes spikes during spike detection if amplitude suggests it's
     % artefactual
     spike_overlay_fcn(fileName,method,parameter,refPeriod_ms,option);
-    progressbar(i/length(files))
     %need to add correction to this function for where there are 0 spikes
 end
 

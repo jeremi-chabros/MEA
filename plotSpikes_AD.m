@@ -117,21 +117,21 @@ ylabel('uV');
 
 %% plot filtered trace of spikes overlaid and peaks aligned 
 clear all
-spikeTrain=zeros(18000000,1);
-finalData=zeros(18000000,1);
-dat=zeros(18000000,60);
+%spikeTrain=zeros(18000000,1);
+%finalData=zeros(18000000,1);
+%dat=zeros(18000000,60);
 %cd 'D:\MECP2_2019_AD\Data_To_Use\2.4.MAT_Files_Whole'
-load('MPT190515_4B_DIV21.mat')
-dat=dat(:,27); 
-[spikeTrain, finalData, threshold] = detectSpikes(dat, 'Manuel', 5, 0);
-spikeTrain=load('MPT190515_4B_DIV21_cSpikes_L0.mat');
-spikeTrain=spikeTrain.cSpikes;
-spikeTrain=full(spikeTrain);
-spikeTrain=spikeTrain(:,27);
+%load('MPT190515_4B_DIV21.mat')
+%dat=dat(:,27); 
+[spikeTrain, finalData, threshold] = detectSpikes(dat(:,46), 'Manuel', 4, -0.1254);
+%spikeTrain=load('MPT190515_4B_DIV21_cSpikes_L0.mat');
+%spikeTrain=spikeTrain.cSpikes;
+%spikeTrain=full(spikeTrain);
+%spikeTrain=spikeTrain(:,27);
 
 sp_times=find(spikeTrain==1);
 figure
-n_spikes_to_plot=5;
+n_spikes_to_plot=30;
 %n_spikes_to_plot=length(sp_times);
 for i=1:n_spikes_to_plot
     sp_peak_time=find(finalData(sp_times(i):sp_times(i)+25)==min(finalData(sp_times(i):sp_times(i)+25)));%note changed min to max as with filtered data spike is +ve

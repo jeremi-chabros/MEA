@@ -1,5 +1,5 @@
 %{
-This script was created by Alex Dunn; last edit: August 2019
+This script was created by Alex Dunn; last edit: Oct 2019
 
 functions called that are not in MATLAB's main directory can be downloaded from: 
 
@@ -47,7 +47,7 @@ clear all
 
 %% essential options to determine
 sampling_fr = 25000; %sampling frequency of MEA recording (in n samples per second)
-dir = 'D:\MECP2_2019_AD\Data_To_Use\2.4.2.TopCultures\best_cSpikes_0' 
+data_dir = 'D:\MECP2_2019_AD\Scripts_and_Output\S1.2.File_Conversion_Output' 
     % directory where data files and analysis functions are saved
 
 fc_figures = 0;%change to 1 to add plots for functional connectivity
@@ -80,12 +80,13 @@ edge threshold = 0.5 (absolute)
 
 %first get spike matrices if necessary using batchGetSpike
 %if got spikes already go to spikes folder:
-cd(dir)
+cd(data_dir)
 
 files = dir('*Spikes*.mat');  % make sure all the spike matrix files in the 
     %directory use the same method and parameters for spike detection
     
     files = files(~contains({files.name}, 'tc'));%remove unwanted files
+    files = files(~contains({files.name}, 'adjM'));%remove unwanted files
         %this will remove any files with 'tc' in the name
            %this can be used to exclude files from old experiments
            %change 'tc' to the experiment code to be excluded
@@ -98,7 +99,12 @@ for file = 1:length(files)
     %% load and get basic firing
     tic
         data=load(files(file).name,'*Spikes','channels'); 
+        try
         cSpikes=data.cSpikes;
+        catch
+        mSpikes=data.mSpikes;
+        end
+        
         try 
     channels=data.channels;
         catch
@@ -108,7 +114,11 @@ for file = 1:length(files)
         end
         clear data
 
+        try
 spikeMat=full(cSpikes);
+        catch
+spikeMat=full(mSpikes);
+        end
 spikeCounts=sum(spikeMat);
 ActiveSpikeCounts=spikeCounts(find(spikeCounts>9));  %spikes of only active channels ('active'= >9)
 
@@ -237,7 +247,7 @@ output(file).meanSTTC=sum(sum(active_adjM))/(length(active_adjM)*(length(active_
 
     %save memory; clear some vars
     clear spikeMat
-    clear cSpikes
+    clear cSpikes mSpikes
     clear burstMatrix burstChannels burstTimes Bst nBursts sp_in_bst
     
     for tarly = 1:length(active_spike_mat(1,:))
