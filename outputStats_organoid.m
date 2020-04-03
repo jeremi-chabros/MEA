@@ -399,6 +399,8 @@ for file = 1:length(files)
                         
                         RC_nodes_vec    =   find(sum(buEdges) == maxKrand);
                         
+                        output(file).RC_node_IDs     =   channels(RC_nodes_vec);
+                        
                         BC_vec          =   betweenness_bin(buEdges);
                         BC              =   mean(BC_vec(RC_nodes_vec));
                         BC_norm         =   BC / ((length(BC_vec)-1) * (length(BC_vec)-2));
