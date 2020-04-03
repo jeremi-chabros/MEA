@@ -10,7 +10,7 @@ clear all; close all
 %if got spikes already go to spikes folder:
 cd 'D:\MECP2_2019_AD\Scripts_and_Output\S1.2.File_Conversion_Output'
 
-files = dir('*FTD*mSpikes_3.mat');  % where your .mat files are
+files = dir('*FTD*mSpikes_4.mat');  % where your .mat files are
 files = files(~contains({files.name}, 'ttx'));
 files = files(~contains({files.name}, 'TTX'));
 files = files(~contains({files.name}, 'adjM'));
@@ -22,7 +22,7 @@ sampling_fr = 25000;
 
 spikes_only = 0;
 burst_stats = 0;
-cor_ctrl = 0; % 1 means correlate randomly shuffled trains; be sure to change the sync window for the ctrl
+cor_ctrl = 1; % 1 means correlate randomly shuffled trains; be sure to change the sync window for the ctrl
 fc_figures = 0;%change to 1 to add plots
 g_figures = 0;%graph theory
 g_measures = 1;
@@ -178,7 +178,7 @@ for file = 1:length(files)
             active_spike_mat = spikeMat(:,active_chanIndex);
             
             if ~exist(strcat(files(file).name(1:end-4), '_adjM', '.mat'))
-                
+                disp('could not find any adjM saved')
                 active_adjM=getAdjM(active_spike_mat, method, 0,0.05);
                 active_adjM=active_adjM-eye(size(active_adjM));
                 active_adjM(find(isnan(active_adjM)))=0;
@@ -187,7 +187,7 @@ for file = 1:length(files)
                 
                 
             else
-                adjM=load(strcat(files(file).name(1:end-4), '_adjM', '.mat'));
+                adjM=load(strcat(files(file).name(1:end-4), '_adjM_3', '.mat'));
                 adjM=adjM.adjM;
                 adjM1= adjM-eye(size(adjM));
                 adjM1(find(isnan(adjM1)))=0;
@@ -217,8 +217,8 @@ for file = 1:length(files)
                 
                 %                 bin_size = 0.01;
                 %                 length(spikeMat(:,1))/25;
-                for k = 1:100 %for running multiple randomisation iterations
-                    disp(strcat(num2str(101-k),'_iterations_remaining'))
+                for k = 1:10 %for running multiple randomisation iterations
+                    disp(strcat(num2str(11-k),'_iterations_remaining'))
                     tic
                     for elec = 1:length(spikeMat(1,:))
                         %{
@@ -228,9 +228,7 @@ for file = 1:length(files)
                 randomly shuffle this
                 then resort the spike train using this index
                         %}
-                        
-                        
-                        syn_win = 0.175;
+                                               
                         down_factor = 25;
                         fs = 25000;
                         fr = sum(spikeMat(:,elec))/(length(spikeMat(:,elec))/fs); %firing rate %divide by seconds
@@ -244,24 +242,44 @@ for file = 1:length(files)
                     
                     %plot to compare spike mat spike counts and rand spike
                     %counts over x iterations
-                    a(k,:) = sum(spikeMat) - sum(rand_spikeMat);
+                    % a(k,:) = sum(spikeMat) - sum(rand_spikeMat);
                     
-                    adjM2 = getAdjM(rand_spikeMat, method, 0,0.007); %0 means no downsampling; 0.05 is sync window in s
+                    %get ctrl adjM
+                    sync_win_s = 3;
+                    rec_length_s = 360;
+                    rec_length_samps = fs * rec_length_s;
+                    num_samples = 1000 * rec_length_s; %defaults to 1 sample per ms
+                    ds_rate = num_samples/rec_length_samps; %scalar for time_window %downsampling rate
+                    sync_win = sync_win_s * ds_rate; %downsample the sync_win
+                    adjM2 = getAdjM(rand_spikeMat, method, num_samples,sync_win); %0 means no downsampling; 0.05 is sync window in s
                     adjM2 = adjM2(active_chanIndex,active_chanIndex);
                     adjM2 = adjM2 - eye(size(adjM2));
                     adjM2(find(isnan(adjM2)))=0;
-                    
+                    %save every random adjM
+                    adjM2s(:,:,k) = adjM2;
+                    %save each mean STTC for the randoms
                     randSTTC(k) = round(sum(sum(adjM2))/(length(adjM2)*(length(adjM2)-1)),3);
-                    
-                    fileNameSpikes = strcat(files(file).name(1:end-4), '_CTRL_spikeMat.mat');
-                    fileNameadjM = strcat(files(file).name(1:end-4), '_CTRL_adjM_0.175.mat');
-                    save(fileNameSpikes, 'rand_spikeMat','-v7.3');
-                    save(fileNameadjM, 'adjM2','-v7.3');
+                    %take one of the random spike mats (not enough memory
+                    %to take all)
+                    if k == 1
+                    rand_spikeMat_sparse = sparse(rand_spikeMat);
+                    end
                     
                     clear adjM2 rand_spikeMat
                     toc
                     
                 end %for running multiple randomisation iterations
+%                    adjM2 = mean(adjM2s,3);%get mean of random adjMs
+                    adjM2 = adjM2s(:,:,1);%get last random adjM
+                    if file == 1
+                    fileNameSpikes = strcat(files(file).name(1:end-4), '_CTRL_spikeMat.mat');
+                    fileNameadjM = strcat(files(file).name(1:end-4), '_CTRL_adjM_3.mat');
+                    save(fileNameSpikes, 'rand_spikeMat_sparse','-v7.3');
+                    save(fileNameadjM, 'adjM2','-v7.3');
+                    disp('saved first ctrl mat')
+                    end
+                    
+                    clear adjM2 rand_spikeMat
                 
                 output(file).STTC_RCtrl= mean(randSTTC);
                 output(file).nrmlsd_cnnctvty = output(file).meanSTTC/output(file).STTC_RCtrl;
@@ -390,6 +408,7 @@ for file = 1:length(files)
                         for r_i = 1:100
                             
                             [R,eff]     = randmio_und(buEdges, 100); %preserves density and distribution
+%                             R           = makerandCIJ_und(Nnodes,Nedges);
                             
                             CrVEC(:,r_i)= clustering_coef_bu(R);
                             Cr(r_i)     = mean(CrVEC(:,r_i));
@@ -429,7 +448,7 @@ for file = 1:length(files)
                     
                     count2 = count2 + 1;
                     disp('a prctle threshold iteration completed')
-                    clear CrVEC 
+                    clear CrVEC
                     
                 end
                 
@@ -465,7 +484,7 @@ end
 %% save
 disp('saving...')
 method = 'manuel';
-threshold = '3';
+threshold = '4';
 fileName = strcat(method,'_' ,threshold, '_organoid_graph_stats', '.mat');
 save(fileName, 'output');
 xldata = struct2table(output);
