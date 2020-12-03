@@ -8,7 +8,7 @@ function [F, cbar] = customHeatmap(X, args)
 %   - option to input text into markers
 
 % INPUT
-%   X: matrix to be visualized
+%   X: vector to be visualized
 %   args: 'Name', Value pairs
 %       'grd': vector of grounded (excluded) nodes; default: []
 %       'c_map': (string) name of the custom heatmap, default: parula
